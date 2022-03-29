@@ -5,13 +5,18 @@
       :height="height"
       :style="{ border: '1px solid #fff' }"
       ref="el"
+      v-if="boolean"
     ></canvas>
-    <img :src="flower" alt="" />
+    <div>
+      <button @click="angle = angle + 0.1">+</button>
+      <span>{{ angle.toFixed(2) }}</span>
+      <button @click="angle = angle - 0.1">-</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import flower from '../assets/flower.svg'
 const el = ref<HTMLCanvasElement>()
 const width = ref<number>(600)
@@ -21,6 +26,20 @@ const frameCount = ref<number>(3)
 const image = ref<HTMLImageElement>()
 const ctx = computed(() => {
   return el.value?.getContext('2d')!
+})
+const angle = ref<number>(0.3)
+const boolean = ref<boolean>(true)
+
+watch(angle, () => {
+  ctx.value.clearRect(0, 0, width.value, height.value)
+  init()
+  const branch: Branch = {
+    start: { x: width.value / 2, y: height.value },
+    length: 50,
+    theta: -Math.PI / 2,
+  }
+  step(branch)
+  startFrame()
 })
 
 interface Point {
@@ -80,7 +99,7 @@ function step(branch: Branch, depth: number = 0): void {
         {
           start: end,
           length: branch.length + (Math.random() * 10 - 5),
-          theta: branch.theta - 0.3 * Math.random(),
+          theta: branch.theta - angle.value * Math.random(),
         },
         depth + 1
       )
@@ -92,7 +111,7 @@ function step(branch: Branch, depth: number = 0): void {
         {
           start: end,
           length: branch.length + (Math.random() * 10 - 5),
-          theta: branch.theta + 0.3 * Math.random(),
+          theta: branch.theta + angle.value * Math.random(),
         },
         depth + 1
       )
